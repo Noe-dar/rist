@@ -1,0 +1,6 @@
+/target
+test
+test.bin
+test.o
+test.s
+rvemu.*
