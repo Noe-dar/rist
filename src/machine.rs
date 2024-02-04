@@ -1,22 +1,24 @@
-use crate::{bus::Bus, memory::WORD, registers::XRegisters};
+use crate::{
+    bus::Bus, decoder::Decoder, exception::Exception, instructions::Instruction, memory::WORD,
+    registers::XRegisters,
+};
 
-pub const XLEN: usize = 64;
-
-pub const LUI: usize = 0x37;
-pub const IMM: usize = 0x13;
-pub const OP: usize = 0x33;
-pub const IMM_32: usize = 0x1B;
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Machine {
     pub xregisters: XRegisters,
-    pc: u64,
-    bus: Bus,
+    pub pc: u64,
+    pub(crate) bus: Bus,
+    decoder: Decoder,
 }
 
 impl Machine {
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(isa: &'static [Instruction]) -> Self {
+        Self {
+            pc: 0,
+            xregisters: XRegisters::default(),
+            bus: Bus::default(),
+            decoder: Decoder::new(isa),
+        }
     }
 
     pub fn flash(&mut self, rom: &'static [u8]) {
@@ -25,57 +27,13 @@ impl Machine {
         }
     }
 
-    pub fn fetch(&self) -> u32 {
-        self.bus.read(self.pc, WORD) as u32
-    }
-
-    pub fn increment_pc(&mut self) {
+    pub fn fetch(&mut self) -> u32 {
+        let instruction = self.bus.read(self.pc, WORD) as u32;
         self.pc += 4;
+        instruction
     }
 
-    pub fn execute(&mut self, instruction: u32) {
-        let opcode = instruction & 0x7F;
-        let rd = ((instruction & 0xF80) >> 7) as usize;
-        let rs1 = ((instruction & 0xF8000) >> 15) as usize;
-        let rs2 = ((instruction & 0x1f00000) >> 20) as usize;
-        let funct3 = (instruction & 0x7000) >> 12;
-        let funct7 = (instruction & 0xfe000000) >> 25;
-
-        match opcode as usize {
-            LUI => {
-                let imm = instruction & 0xFFFFF000;
-                println!("{}: LUI {}, {}", self.pc, rd, imm);
-                self.xregisters[rd] = imm as u64;
-            }
-            OP => match (funct7, funct3) {
-                (0, 0) => {
-                    println!("{}: ADD {}, {}, {}", self.pc, rd, rs1, rs2);
-                    self.xregisters[rd] = self.xregisters[rs1].wrapping_add(self.xregisters[rs2]);
-                }
-                _ => unimplemented!(),
-            },
-            IMM_32 => {
-                let instruction = instruction as i32 as i64;
-                
-                match funct3 {
-                    0x0 => {
-                        let imm = instruction >> 20;
-                        println!("{}: ADDI {}, {}, {}", self.pc, rd, rs1, imm);
-                        self.xregisters[rd] = self.xregisters[rs1].wrapping_add(imm as u64);
-                    }
-                    _ => unimplemented!(),
-                }
-            }
-            IMM => match funct3 {
-                0x0 => {
-                    let imm = (instruction & 0xFFF00000) >> 20;
-                    println!("{}: ADDI {}, {}, {}", self.pc, rd, rs1, imm);
-                    self.xregisters[rd] =
-                        (self.xregisters[rs1].wrapping_add(imm as u64)) as i32 as i64 as u64
-                }
-                _ => unimplemented!(),
-            },
-            _ => unimplemented!(),
-        }
+    pub fn decode(&mut self, instruction: u32) -> Result<Instruction, Exception> {
+        self.decoder.decode(instruction)
     }
 }

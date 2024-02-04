@@ -1,32 +1,43 @@
+use instructions::{
+    addi::ADDI, andi::ANDI, lb::LB, lbu::LBU, lh::LH, lhu::LHU, lui::LUI, lw::LW, ori::ORI, slli::SLLI, slti::SLTI, srli::SRLI, xori::XORI, ADD, SLTIU, SUB
+};
 use machine::Machine;
-use rvemu::{bus::DRAM_BASE, emulator::Emulator};
 
-pub mod machine;
+use crate::exception::Exception;
+
 pub mod bus;
+pub mod decoder;
+pub mod exception;
+pub mod instructions;
+pub mod machine;
 pub mod memory;
 pub mod registers;
 
 const ROM: &[u8] = include_bytes!("../test.bin");
 
-fn main() {
-    let mut machine = Machine::new();
-    let mut emulator = Emulator::new();
-    emulator.initialize_dram(ROM.into());
-    emulator.initialize_pc(DRAM_BASE);
+fn execute(machine: &mut Machine) -> Result<(), Exception> {
+    let word = machine.fetch();
+    let instruction = machine.decode(word)?;
 
+    (instruction.execute)(machine, word);
+
+    Ok(())
+}
+
+fn main() {
+    let mut machine = Machine::new(&[
+        ADDI, SLTI, SLTIU, XORI, ORI, ANDI, LUI, SLLI, SRLI, LB, LBU, LH, LHU, LW, ADD, SUB
+    ]);
     machine.flash(ROM);
 
-    for _ in 0..(ROM.len() / 4) {
-        let instruction = machine.fetch();
-        machine.increment_pc();
-
-        machine.execute(instruction);
+    loop {
+        if let Err(exception) = execute(&mut machine) {
+            println!("! EXCEPTION !: {:?}", exception);
+            break;
+        } else {
+            println!("{}", machine.pc);
+        }
     }
 
-    emulator.start();
-
-    println!("rist {}", machine.xregisters[5] as i64);
-    println!("{}", emulator.cpu.xregs.read(5));
-
-    
+    machine.xregisters.dump()
 }
