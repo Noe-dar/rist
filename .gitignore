@@ -1,6 +1,4 @@
 /target
 test
-test.bin
-test.o
-test.s
+test.*
 rvemu.*
