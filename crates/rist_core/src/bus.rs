@@ -10,8 +10,8 @@ const DRAM_BASE: usize = 0x8000;
 const DRAM_END: usize = DRAM_BASE + DRAM_BASE;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Bus {
-    pub rom: [u8; ROM_SIZE],
+pub(crate) struct Bus {
+    pub(crate) rom: [u8; ROM_SIZE],
     dram: [u8; DRAM_SIZE],
 }
 

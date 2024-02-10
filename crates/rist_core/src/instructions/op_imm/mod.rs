@@ -7,6 +7,7 @@ pub mod sltiu;
 pub mod srai;
 pub mod srli;
 pub mod xori;
+pub mod slliw;
 
 pub use addi::ADDI;
 pub use andi::ANDI;

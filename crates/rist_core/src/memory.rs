@@ -5,7 +5,7 @@ pub const HALFWORD: u8 = 16;
 pub const WORD: u8 = 32;
 pub const DOUBLEWORD: u8 = 64;
 
-pub trait WriteMemoryExt: IndexMut<usize, Output = u8> {
+pub(crate) trait WriteMemoryExt: IndexMut<usize, Output = u8> {
     fn write(&mut self, address: u64, value: u64, size: u8) {
         match size {
             BYTE => self.write_byte(address, value),

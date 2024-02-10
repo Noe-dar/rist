@@ -13,6 +13,7 @@ pub mod store;
 pub mod jalr;
 pub mod auipc;
 pub mod ecall;
+pub mod fence;
 
 pub use load::*;
 pub use op::*;

@@ -4,6 +4,7 @@ pub mod lh;
 pub mod lhu;
 pub mod lw;
 pub mod ld;
+pub mod lwu;
 
 pub use lb::LB;
 pub use lbu::LBU;

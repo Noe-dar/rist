@@ -1,5 +1,11 @@
 use crate::{
-    bus::Bus, debug::Debugger, decoder::Decoder, exception::Exception, instructions::Instruction, memory::WORD, registers::XRegisters
+    bus::Bus,
+    debug::Debugger,
+    decoder::Decoder,
+    exception::Exception,
+    instructions::Instruction,
+    memory::WORD,
+    registers::XRegisters,
 };
 
 #[derive(Clone)]
@@ -7,8 +13,8 @@ pub struct Machine {
     pub(crate) xregisters: XRegisters,
     pub(crate) pc: u64,
     pub(crate) bus: Bus,
-    decoder: Decoder,
     pub(crate) debugger: Option<&'static dyn Debugger>,
+    decoder: Decoder,
 }
 
 impl Machine {
@@ -18,7 +24,7 @@ impl Machine {
             xregisters: XRegisters::default(),
             bus: Bus::default(),
             decoder: Decoder::new(isa),
-            debugger: None
+            debugger: None,
         }
     }
 
@@ -26,7 +32,7 @@ impl Machine {
         self.debugger = Some(debugger)
     }
 
-    pub fn flash(&mut self, rom: &'static [u8]) {
+    pub fn flash(&mut self, rom: &[u8]) {
         for (index, byte) in rom.iter().enumerate() {
             self.bus.rom[index] = *byte;
         }
@@ -38,6 +44,10 @@ impl Machine {
 
     pub fn decode(&mut self, instruction: u32) -> Result<Instruction, Exception> {
         self.decoder.decode(instruction)
+    }
+
+    pub fn increment_pc(&mut self) {
+        self.pc += 4;
     }
 
     pub fn dump(&self) {

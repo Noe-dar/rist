@@ -7,30 +7,8 @@ pub struct XRegisters {
 }
 
 impl XRegisters {
-    const ABI_NAMES: [&'static str; 32] = [
-        "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4",
-        "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4",
-        "t5", "t6",
-    ];
-
     pub fn iter(&self) -> Iter<'_, u64> {
         self.registers.iter()
-    }
-
-    pub fn dump(&self) {
-        for register in (0..32).step_by(2) {
-            print!(
-                "{name}:\t{register:#x}\t(DECIMAL={register})\t",
-                register = self.registers[register],
-                name = XRegisters::ABI_NAMES[register]
-            );
-            print!(
-                "{name}:\t{register:#x}\t(DECIMAL={register})",
-                register = self.registers[register + 1],
-                name = XRegisters::ABI_NAMES[register + 1]
-            );
-            println!()
-        }
     }
 }
 
